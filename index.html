@@ -126,6 +126,33 @@
       pointer-events: auto;
     }
 
+    /* Nút Back (Quay lại) */
+    .btn-back {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(74, 124, 89, 0.3);
+      color: #3B6047;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      z-index: 5;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .btn-back:hover {
+      background: #4A7C59;
+      color: #ffffff;
+      transform: scale(1.08);
+    }
+
     /* ---------------- SLIDE 1: HỘP QUÀ ---------------- */
     .slide-gift-container {
       text-align: center;
@@ -268,6 +295,7 @@
       padding: 2.8rem 2.2rem;
       border: 1px solid rgba(255, 255, 255, 0.95);
       box-shadow: 0 18px 40px rgba(140, 175, 195, 0.35);
+      position: relative;
     }
 
     .wish-layout {
@@ -291,7 +319,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center 20%; /* Căn lấy gương mặt chị làm trọng tâm */
+      object-position: center 20%;
       border-radius: 14px;
       display: block;
     }
@@ -356,6 +384,7 @@
       text-align: center;
       border: 1px solid rgba(255, 255, 255, 0.95);
       box-shadow: 0 20px 45px rgba(140, 175, 195, 0.38);
+      position: relative;
     }
 
     .invitation-title {
@@ -516,8 +545,12 @@
     <!-- SLIDE 2: BÊN TRÁI LÀ HÌNH VUÔNG MS PEARL, BÊN PHẢI LÀ LỜI CHÚC -->
     <div class="slide" id="slide2">
       <div class="wish-card">
+        <!-- Nút Quay lại Slide 1 -->
+        <button class="btn-back" onclick="goToSlide1()" title="Quay lại">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
         <div class="wish-layout">
-          
           <!-- Bên trái: Ảnh đại diện Ms Pearl khung hình vuông bo góc -->
           <div class="profile-photo-wrapper">
             <img src="a.jpg" alt="Ms Rich Pearl" class="profile-photo">
@@ -546,7 +579,11 @@
     <!-- SLIDE 3: THIỆP MỜI CHI TIẾT -->
     <div class="slide" id="slide3">
       <div class="invitation-card">
-        
+        <!-- Nút Quay lại Slide 2 -->
+        <button class="btn-back" onclick="goToSlide2From3()" title="Quay lại">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+
         <div class="invitation-title">Thiệp Mời Sinh Nhật</div>
         <div class="invitation-subtitle">Trân Trọng Kính Mời Quý Khách</div>
 
@@ -567,7 +604,7 @@
             <i class="fa-solid fa-location-dot" style="margin-top: 4px;"></i>
             <div>
               <div class="venue-title">WIMI Coffee</div>
-              <div class="venue-address">53A Nguyễn Du, P. Bến Nghé, Quận 1, TP. HCM</div>
+              <div class="venue-address">53A Nguyễn Du, P. Sài Gòn, Quận 1, TP. HCM</div>
             </div>
           </div>
         </div>
@@ -593,6 +630,9 @@
   </div>
 
   <script>
+    let isOpen = false;
+    let autoSlideTimer = null; // Quản lý bộ đếm thời gian tự động chuyển slide
+
     // 1. Tạo hiệu ứng cánh hoa bay liên tục
     function createPetals() {
       const container = document.getElementById('petals-container');
@@ -614,8 +654,15 @@
       }
     }
 
+    // Xóa bộ đếm tự động chuyển slide nếu người dùng bấm nút thủ công
+    function clearAutoSlideTimer() {
+      if (autoSlideTimer) {
+        clearTimeout(autoSlideTimer);
+        autoSlideTimer = null;
+      }
+    }
+
     // 2. Chuyển từ Slide 1 -> Slide 2 khi bấm Hộp quà
-    let isOpen = false;
     function openGiftAndShowWishes() {
       if (isOpen) return;
       isOpen = true;
@@ -641,18 +688,29 @@
       setTimeout(() => {
         slide1.classList.remove('active');
         slide2.classList.add('active');
+
+        // TỰ ĐỘNG CHUYỂN SANG SLIDE 3 sau 6 giây
+        clearAutoSlideTimer();
+        autoSlideTimer = setTimeout(() => {
+          goToSlide3(true); // true đánh dấu là chuyển tự động
+        }, 6000);
+
       }, 650);
     }
 
     // 3. Chuyển từ Slide 2 -> Slide 3 (Thiệp mời)
-    function goToSlide3() {
+    function goToSlide3(isAuto = false) {
+      if (!isAuto) {
+        clearAutoSlideTimer(); // Dừng tự động nếu người dùng bấm bằng tay
+      }
+
       const slide2 = document.getElementById('slide2');
       const slide3 = document.getElementById('slide3');
 
       slide2.classList.remove('active');
       slide3.classList.add('active');
 
-      // Thêm pháo hoa chúc mừng khi chuyển thiệp
+      // Bắn pháo hoa chúc mừng khi chuyển thiệp
       if (typeof confetti === 'function') {
         confetti({
           particleCount: 50,
@@ -661,6 +719,31 @@
           colors: ['#4A7C59', '#FFD700']
         });
       }
+    }
+
+    // 4. NÚT BACK: Từ Slide 2 về lại Slide 1 (Hộp quà)
+    function goToSlide1() {
+      clearAutoSlideTimer();
+      const slide1 = document.getElementById('slide1');
+      const slide2 = document.getElementById('slide2');
+      const giftBox = document.getElementById('giftBox');
+
+      slide2.classList.remove('active');
+      slide1.classList.add('active');
+
+      // Đóng nắp hộp quà lại để có thể bấm mở tiếp
+      giftBox.classList.remove('open');
+      isOpen = false;
+    }
+
+    // 5. NÚT BACK: Từ Slide 3 về lại Slide 2 (Lời chúc)
+    function goToSlide2From3() {
+      clearAutoSlideTimer();
+      const slide2 = document.getElementById('slide2');
+      const slide3 = document.getElementById('slide3');
+
+      slide3.classList.remove('active');
+      slide2.classList.add('active');
     }
 
     // Khởi tạo
